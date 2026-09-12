@@ -1,0 +1,179 @@
+/* Хакерский футуристичный дизайн */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #050b05;
+    color: #33ff33;
+    font-family: 'Courier New', Courier, monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Эффект сканирующих линий (ЭЛТ-монитор) */
+body::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 999;
+    background-size: 100% 4px, 6px 100%;
+    pointer-events: none;
+}
+
+/* Главный терминал */
+.terminal {
+    background: rgba(10, 25, 10, 0.85);
+    border: 2px solid #00ff41;
+    border-radius: 5px;
+    padding: 40px;
+    width: 100%;
+    max-width: 550px;
+    box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+    text-align: center;
+    backdrop-filter: blur(4px);
+    transition: all 0.5s ease;
+}
+
+/* Светящийся заголовок */
+h1 {
+    font-size: 3.5rem;
+    text-transform: uppercase;
+    letter-spacing: 6px;
+    margin-bottom: 25px;
+    color: #00ff41;
+    text-shadow: 0 0 10px #00ff41, 0 0 20px #00ff41;
+    animation: blink 2s infinite alternate;
+}
+
+.subtitle {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    letter-spacing: 2px;
+    color: #88ff88;
+}
+
+/* Поле ввода */
+.input-group {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+input {
+    background: #000;
+    border: 1px solid #00ff41;
+    color: #00ff41;
+    padding: 12px;
+    font-size: 1.3rem;
+    text-align: center;
+    width: 100%;
+    outline: none;
+    font-family: inherit;
+    letter-spacing: 3px;
+    box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.2);
+}
+
+input:focus {
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.6), inset 0 0 10px rgba(0, 255, 65, 0.4);
+}
+
+/* Хакерская кнопка */
+button {
+    background: transparent;
+    border: 2px solid #00ff41;
+    color: #00ff41;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    font-family: inherit;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+}
+
+button:hover {
+    background: #00ff41;
+    color: #000;
+    box-shadow: 0 0 20px #00ff41;
+}
+
+/* Стили вывода результатов */
+.flag-box {
+    margin: 20px auto;
+    max-width: 200px;
+    border: 2px dashed #00ff41;
+    padding: 5px;
+    background: #000;
+}
+
+.flag-box img {
+    width: 100%;
+    display: block;
+}
+
+.info-field {
+    margin: 15px 0;
+    text-align: left;
+    font-size: 1.05rem;
+    line-height: 1.5;
+    border-bottom: 1px dotted rgba(0, 255, 65, 0.3);
+    padding-bottom: 8px;
+}
+
+.info-label {
+    color: #88ff88;
+    font-weight: bold;
+}
+
+/* Блок описания и логов командной строки */
+.description-box, .cmd-log-box {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid #00ff41;
+    padding: 15px;
+    margin-top: 20px;
+    text-align: left;
+    font-size: 0.9rem;
+    max-height: 150px;
+    overflow-y: auto;
+    color: #aaffaa;
+    line-height: 1.4;
+}
+
+.cmd-log-box {
+    max-height: 200px;
+    font-family: monospace;
+    color: #00ff41;
+    margin-bottom: 15px;
+}
+
+.description-box::-webkit-scrollbar, .cmd-log-box::-webkit-scrollbar {
+    width: 5px;
+}
+.description-box::-webkit-scrollbar-thumb, .cmd-log-box::-webkit-scrollbar-thumb {
+    background: #00ff41;
+}
+
+/* Сообщения об ошибках и статусах */
+.status-msg {
+    margin-top: 15px;
+    font-size: 0.95rem;
+    min-height: 20px;
+}
+.error { color: #ff3333; text-shadow: 0 0 5px #ff3333; }
+.loading { color: #ffff33; text-shadow: 0 0 5px #ffff33; }
+
+.hidden { display: none !important; }
+
+@keyframes blink {
+    0% { opacity: 0.9; }
+    100% { opacity: 1; text-shadow: 0 0 15px #00ff41, 0 0 25px #00ff41; }
+}
