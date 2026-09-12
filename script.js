@@ -19,7 +19,7 @@ const backupDatabase = [
     }
 ];
 
-// Регистрация функции админа в глобальной консоли браузера (F12)
+// Функция активации админа из веб-консоли (F12)
 window.admin = function(status) {
     if (status === 'enabled' || status === enabled) {
         isAdminMode = true;
@@ -30,7 +30,15 @@ window.admin = function(status) {
         return "INVALID_COMMAND";
     }
 };
-window.enabled = 'enabled'; // Фикс синтаксиса для вызова без кавычек admin(enabled)
+
+// Поддержка команды setAdmin() без параметров
+window.setAdmin = function() {
+    isAdminMode = true;
+    console.log("%c[SYSTEM]: Режим администратора активирован через setAdmin(). Доступна секретная строка 'cmd'.", "color: #00ff41; font-weight: bold; font-size: 12px;");
+    return "ADMIN_MODE_ENABLED";
+};
+
+window.enabled = 'enabled'; // Фикс синтаксиса для вызова без кавычек
 
 // Получение базы данных (с GitHub Pages или из бэкапа)
 async function getDatabase() {
@@ -80,6 +88,7 @@ async function processHackId() {
     } else {
         statusDiv.className = "status-msg error";
         statusDiv.innerText = "Не удалось найти ID";
+        statusDiv.classList.remove('hidden');
     }
 }
 
@@ -107,6 +116,7 @@ async function executeCmdCommand() {
 
     if (!fullCommand) return;
 
+    // Выводим саму команду в логи терминала
     cmdLog.innerHTML += `<br><span style="color: #88ff88;">> ${fullCommand}</span>`;
 
     const spaceIndex = fullCommand.indexOf(' ');
@@ -143,9 +153,29 @@ async function executeCmdCommand() {
         setTimeout(() => {
             closeCmd();
         }, 800);
-    } 
+    }
+    else if (command === 'clear') {
+        // Полностью очищаем экран логов терминала
+        cmdLog.innerHTML = `Терминал очищен. Жду команд...<br>`;
+    }
+    else if (command === 'scan') {
+        cmdLog.innerHTML += `<br>Сканирование доступных целей в базе данных...`;
+        const database = await getDatabase();
+        database.forEach(item => {
+            cmdLog.innerHTML += `<br> -> [ID: <span style="color: #ffff33;">${item["Hack ID"]}</span>] Сектор: ${item.country}`;
+        });
+    }
+    else if (command === 'help') {
+        cmdLog.innerHTML += `<br><br><span style="color: #ffff33; font-weight: bold;">ДОСТУПНЫЕ КОМАНДЫ:</span><br>` +
+                             ` - <span>help</span> : Вывести этот список инструкций<br>` +
+                             ` - <span>scan</span> : Найти и вывести все Hack ID из базы данных<br>` +
+                             ` - <span>todo [текст]</span> : Отправить задачу на обработку симуляции<br>` +
+                             ` - <span>openid [ID]</span> : Форсировать взлом и открыть карточку страны<br>` +
+                             ` - <span>clear</span> : Полностью стереть логи с экрана терминала<br>` +
+                             ` - <span>deladmin</span> : Сбросить root-права администратора и выйти<br>`;
+    }
     else {
-        cmdLog.innerHTML += `<br>Неизвестная команда: "${command}"`;
+        cmdLog.innerHTML += `<br>Неизвестная команда: "${command}". Введите <span style="color: #ffff33;">help</span> для списка доступных директив.`;
     }
 
     cmdLog.scrollTop = cmdLog.scrollHeight;
