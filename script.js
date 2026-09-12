@@ -40,6 +40,13 @@ window.setAdmin = function() {
 
 window.enabled = 'enabled'; // Фикс синтаксиса для вызова без кавычек
 
+// Функция вывода текста в терминал CMD
+function printOnCmd(text) {
+    const cmdLog = document.getElementById('cmd-log');
+    cmdLog.innerHTML += `<br>${text}`;
+    cmdLog.scrollTop = cmdLog.scrollHeight; // Автоматический скролл вниз
+}
+
 // Получение базы данных (с GitHub Pages или из бэкапа)
 async function getDatabase() {
     try {
@@ -108,77 +115,102 @@ function showResultScreen(data) {
     }, 400);
 }
 
-// Обработка встроенной командной строки (cmd)
-async function executeCmdCommand() {
-    const cmdInput = document.getElementById('cmd-input');
+// ==========================================
+// ФУНКЦИИ ДЛЯ ХАКЕРСКИХ КОМАНД TERMINALA
+// ==========================================
+
+function cmdHelp() {
+    printOnCmd(`<br><span style="color: #ffff33; font-weight: bold;">ДОСТУПНЫЕ КОМАНДЫ:</span><br>` +
+               ` - <span>help</span> : Вывести этот список инструкций<br>` +
+               ` - <span>scan</span> : Найти и вывести все Hack ID из базы данных<br>` +
+               ` - <span>todo [текст]</span> : Отправить задачу на обработку симуляции<br>` +
+               ` - <span>openid [ID]</span> : Форсировать взлом и открыть карточку страны<br>` +
+               ` - <span>clear</span> : Полностью стереть логи с экрана терминала<br>` +
+               ` - <span>deladmin</span> : Сбросить root-права администратора и выйти<br>`);
+}
+
+async function cmdScan() {
+    printOnCmd(`Сканирование доступных целей в базе данных...`);
+    const database = await getDatabase();
+    database.forEach(item => {
+        printOnCmd(` -> [ID: <span style="color: #ffff33;">${item["Hack ID"]}</span>] Сектор: ${item.country}`);
+    });
+}
+
+function cmdTodo(argument) {
+    printOnCmd(`Обрабатываю задачу: "${argument || 'Без описания'}"...`);
+    printOnCmd(`<span style="color: #ffff33;">СДЕЛАНО</span>`);
+}
+
+async function cmdOpenId(argument) {
+    if (!argument) {
+        printOnCmd(`<span style="color: #ff3333;">Ошибка: Укажите Hack ID. Пример: openid 1234</span>`);
+        return;
+    }
+    printOnCmd(`Поиск ID ${argument} в зашифрованных секторах базы...`);
+    const database = await getDatabase();
+    const hackData = database.find(item => item["Hack ID"] === argument);
+
+    if (hackData) {
+        printOnCmd(`<span style="color: #ffff33;">ID найден. Инициализация перенаправления экрана...</span>`);
+        setTimeout(() => {
+            showResultScreen(hackData);
+            document.getElementById('cmd-input').value = '';
+        }, 500);
+    } else {
+        printOnCmd(`<span style="color: #ff3333;">Ошибка: ID ${argument} не зарегистрирован в системе.</span>`);
+    }
+}
+
+function cmdClear() {
     const cmdLog = document.getElementById('cmd-log');
+    cmdLog.innerHTML = `Терминал очищен. Жду команд...<br>`;
+}
+
+function cmdDelAdmin() {
+    isAdminMode = false;
+    printOnCmd(`<span style="color: #ff3333;">Права root аннулированы. Закрытие терминала...</span>`);
+    setTimeout(() => {
+        closeCmd();
+    }, 600);
+}
+
+// ==========================================
+// СПИСОК РАЗРЕШЕННЫХ КОМАНД (МАРШРУТИЗАТОР)
+// ==========================================
+const allowedCommands = {
+    'help': cmdHelp,
+    'scan': cmdScan,
+    'todo': cmdTodo,
+    'openid': cmdOpenId,
+    'clear': cmdClear,
+    'deladmin': cmdDelAdmin
+};
+
+// Главный обработчик встроенной командной строки
+function executeCmdCommand() {
+    const cmdInput = document.getElementById('cmd-input');
     const fullCommand = cmdInput.value.trim();
 
     if (!fullCommand) return;
 
-    // Выводим саму команду в логи терминала
-    cmdLog.innerHTML += `<br><span style="color: #88ff88;">> ${fullCommand}</span>`;
+    // Сразу пишем саму команду, которую ввел пользователь
+    printOnCmd(`<span style="color: #88ff88;">> ${fullCommand}</span>`);
 
+    // Извлекаем саму команду и аргументы
     const spaceIndex = fullCommand.indexOf(' ');
     const command = spaceIndex !== -1 ? fullCommand.substring(0, spaceIndex).toLowerCase() : fullCommand.toLowerCase();
     const argument = spaceIndex !== -1 ? fullCommand.substring(spaceIndex + 1).trim() : '';
 
-    if (command === 'todo') {
-        cmdLog.innerHTML += `<br>Обрабатываю...`;
-        cmdLog.innerHTML += `<br><span style="color: #ffff33;">СДЕЛАНО</span>`;
-    } 
-    else if (command === 'openid') {
-        if (!argument) {
-            cmdLog.innerHTML += `<br><span style="color: #ff3333;">Ошибка: Укажите Hack ID. Пример: openid 1234</span>`;
-        } else {
-            cmdLog.innerHTML += `<br>Поиск ID ${argument} в базе данных...`;
-            const database = await getDatabase();
-            const hackData = database.find(item => item["Hack ID"] === argument);
-
-            if (hackData) {
-                cmdLog.innerHTML += `<br><span style="color: #ffff33;">ID найден. Перенаправление...</span>`;
-                setTimeout(() => {
-                    showResultScreen(hackData);
-                    cmdInput.value = '';
-                }, 600);
-                return;
-            } else {
-                cmdLog.innerHTML += `<br><span style="color: #ff3333;">Ошибка: ID ${argument} не найден.</span>`;
-            }
-        }
-    } 
-    else if (command === 'deladmin') {
-        isAdminMode = false;
-        cmdLog.innerHTML += `<br><span style="color: #ff3333;">Права root аннулированы. Выход...</span>`;
-        setTimeout(() => {
-            closeCmd();
-        }, 800);
-    }
-    else if (command === 'clear') {
-        // Полностью очищаем экран логов терминала
-        cmdLog.innerHTML = `Терминал очищен. Жду команд...<br>`;
-    }
-    else if (command === 'scan') {
-        cmdLog.innerHTML += `<br>Сканирование доступных целей в базе данных...`;
-        const database = await getDatabase();
-        database.forEach(item => {
-            cmdLog.innerHTML += `<br> -> [ID: <span style="color: #ffff33;">${item["Hack ID"]}</span>] Сектор: ${item.country}`;
-        });
-    }
-    else if (command === 'help') {
-        cmdLog.innerHTML += `<br><br><span style="color: #ffff33; font-weight: bold;">ДОСТУПНЫЕ КОМАНДЫ:</span><br>` +
-                             ` - <span>help</span> : Вывести этот список инструкций<br>` +
-                             ` - <span>scan</span> : Найти и вывести все Hack ID из базы данных<br>` +
-                             ` - <span>todo [текст]</span> : Отправить задачу на обработку симуляции<br>` +
-                             ` - <span>openid [ID]</span> : Форсировать взлом и открыть карточку страны<br>` +
-                             ` - <span>clear</span> : Полностью стереть логи с экрана терминала<br>` +
-                             ` - <span>deladmin</span> : Сбросить root-права администратора и выйти<br>`;
-    }
-    else {
-        cmdLog.innerHTML += `<br>Неизвестная команда: "${command}". Введите <span style="color: #ffff33;">help</span> для списка доступных директив.`;
+    // Ищем команду в списке разрешенных команд
+    if (command in allowedCommands) {
+        // Если команда найдена, вызываем привязанную к ней функцию
+        allowedCommands[command](argument);
+    } else {
+        // Если команды нет в списке разрешенных
+        printOnCmd(`Неизвестная команда: "${command}". Введите <span style="color: #ffff33;">help</span> для получения списка.`);
     }
 
-    cmdLog.scrollTop = cmdLog.scrollHeight;
     cmdInput.value = '';
 }
 
